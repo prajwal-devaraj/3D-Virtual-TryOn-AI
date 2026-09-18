@@ -1,12 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import AvatarViewer from "@/components/AvatarViewer";
 
 type BodyProfile = "male" | "female" | "neutral";
 type CameraView = "front" | "side" | "back";
 
+type LengthUnit = "cm" | "mm" | "m" | "in" | "ft";
+type WeightUnit = "kg" | "g" | "lb";
+
 export default function Home() {
+  /*
+   * IMPORTANT:
+   * Internally we always store:
+   * - length = centimeters
+   * - weight = kilograms
+   *
+   * Units below only control how values are displayed.
+   */
+
   const [height, setHeight] = useState(175);
   const [weight, setWeight] = useState(75);
 
@@ -27,6 +39,16 @@ export default function Home() {
   const [view, setView] =
     useState<CameraView>("front");
 
+  const [lengthUnit, setLengthUnit] =
+    useState<LengthUnit>("cm");
+
+  const [weightUnit, setWeightUnit] =
+    useState<WeightUnit>("kg");
+
+  /*
+   * BMI calculations always use kg + meters,
+   * regardless of selected display unit.
+   */
   const bmi = useMemo(() => {
     const heightInMeters = height / 100;
 
@@ -63,12 +85,12 @@ export default function Home() {
           </h1>
 
           <p className="mt-3 max-w-3xl text-slate-400">
-            Build a personalized body profile and preview
-            clothing in interactive 3D.
+            Build a personalized body profile using your preferred
+            measurement units and preview the result in interactive 3D.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[370px_1fr]">
           {/* LEFT PANEL */}
           <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">
@@ -76,11 +98,10 @@ export default function Home() {
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Choose a starting body base and customize
-              measurements.
+              Customize measurements using the units you normally use.
             </p>
 
-            {/* BODY TYPE */}
+            {/* BODY PROFILE */}
             <div className="mt-5 grid grid-cols-3 gap-2">
               <ProfileButton
                 active={bodyProfile === "male"}
@@ -104,14 +125,90 @@ export default function Home() {
               </ProfileButton>
             </div>
 
-            {/* BODY SLIDERS */}
+            {/* UNIT SETTINGS */}
+            <div className="mt-7 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+              <h3 className="font-semibold">
+                Measurement Units
+              </h3>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-wide text-slate-400">
+                    Length
+                  </label>
+
+                  <select
+                    value={lengthUnit}
+                    onChange={(event) =>
+                      setLengthUnit(
+                        event.target.value as LengthUnit
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-white outline-none"
+                  >
+                    <option value="cm">
+                      Centimeters (cm)
+                    </option>
+
+                    <option value="mm">
+                      Millimeters (mm)
+                    </option>
+
+                    <option value="m">
+                      Meters (m)
+                    </option>
+
+                    <option value="in">
+                      Inches (in)
+                    </option>
+
+                    <option value="ft">
+                      Feet (ft)
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-wide text-slate-400">
+                    Weight
+                  </label>
+
+                  <select
+                    value={weightUnit}
+                    onChange={(event) =>
+                      setWeightUnit(
+                        event.target.value as WeightUnit
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-white outline-none"
+                  >
+                    <option value="kg">
+                      Kilograms (kg)
+                    </option>
+
+                    <option value="g">
+                      Grams (g)
+                    </option>
+
+                    <option value="lb">
+                      Pounds (lb)
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* MEASUREMENTS */}
             <div className="mt-7">
               <Slider
                 label="Height"
                 value={height}
                 min={145}
                 max={210}
-                unit="cm"
+                displayValue={formatLength(
+                  height,
+                  lengthUnit
+                )}
                 onChange={setHeight}
               />
 
@@ -120,7 +217,10 @@ export default function Home() {
                 value={weight}
                 min={40}
                 max={150}
-                unit="kg"
+                displayValue={formatWeight(
+                  weight,
+                  weightUnit
+                )}
                 onChange={setWeight}
               />
 
@@ -129,7 +229,10 @@ export default function Home() {
                 value={chest}
                 min={70}
                 max={145}
-                unit="cm"
+                displayValue={formatLength(
+                  chest,
+                  lengthUnit
+                )}
                 onChange={setChest}
               />
 
@@ -138,7 +241,10 @@ export default function Home() {
                 value={waist}
                 min={55}
                 max={145}
-                unit="cm"
+                displayValue={formatLength(
+                  waist,
+                  lengthUnit
+                )}
                 onChange={setWaist}
               />
 
@@ -147,7 +253,10 @@ export default function Home() {
                 value={hips}
                 min={70}
                 max={150}
-                unit="cm"
+                displayValue={formatLength(
+                  hips,
+                  lengthUnit
+                )}
                 onChange={setHips}
               />
 
@@ -156,7 +265,10 @@ export default function Home() {
                 value={shoulder}
                 min={34}
                 max={60}
-                unit="cm"
+                displayValue={formatLength(
+                  shoulder,
+                  lengthUnit
+                )}
                 onChange={setShoulder}
               />
 
@@ -165,7 +277,10 @@ export default function Home() {
                 value={armLength}
                 min={48}
                 max={82}
-                unit="cm"
+                displayValue={formatLength(
+                  armLength,
+                  lengthUnit
+                )}
                 onChange={setArmLength}
               />
 
@@ -174,7 +289,10 @@ export default function Home() {
                 value={inseam}
                 min={60}
                 max={105}
-                unit="cm"
+                displayValue={formatLength(
+                  inseam,
+                  lengthUnit
+                )}
                 onChange={setInseam}
               />
             </div>
@@ -211,9 +329,9 @@ export default function Home() {
             </div>
           </section>
 
-          {/* RIGHT PANEL */}
+          {/* RIGHT SIDE */}
           <section className="min-w-0">
-            {/* TOP CONTROLS */}
+            {/* BUILD + CAMERA */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-slate-400">
@@ -229,7 +347,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* CAMERA BUTTONS */}
               <div className="flex flex-wrap gap-2">
                 <ViewButton
                   active={view === "front"}
@@ -254,7 +371,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3D AVATAR */}
+            {/* AVATAR */}
             <AvatarViewer
               height={height}
               weight={weight}
@@ -270,7 +387,7 @@ export default function Home() {
               view={view}
             />
 
-            {/* 3D INSTRUCTIONS */}
+            {/* CONTROLS HELP */}
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-300">
               <span className="rounded-full bg-slate-900 px-4 py-2">
                 Drag → Rotate 360°
@@ -281,15 +398,15 @@ export default function Home() {
               </span>
 
               <span className="rounded-full bg-slate-900 px-4 py-2">
-                Front / Side / Back
+                Units → Auto convert
               </span>
 
               <span className="rounded-full bg-slate-900 px-4 py-2">
-                Sliders → Live body update
+                Sliders → Live update
               </span>
             </div>
 
-            {/* BODY SUMMARY */}
+            {/* SUMMARY */}
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <MeasurementCard
                 title="Body Base"
@@ -298,12 +415,18 @@ export default function Home() {
 
               <MeasurementCard
                 title="Height"
-                value={`${height} cm`}
+                value={formatLength(
+                  height,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Weight"
-                value={`${weight} kg`}
+                value={formatWeight(
+                  weight,
+                  weightUnit
+                )}
               />
 
               <MeasurementCard
@@ -313,32 +436,50 @@ export default function Home() {
 
               <MeasurementCard
                 title="Chest / Bust"
-                value={`${chest} cm`}
+                value={formatLength(
+                  chest,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Waist"
-                value={`${waist} cm`}
+                value={formatLength(
+                  waist,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Hips"
-                value={`${hips} cm`}
+                value={formatLength(
+                  hips,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Shoulders"
-                value={`${shoulder} cm`}
+                value={formatLength(
+                  shoulder,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Arm Length"
-                value={`${armLength} cm`}
+                value={formatLength(
+                  armLength,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
                 title="Inseam"
-                value={`${inseam} cm`}
+                value={formatLength(
+                  inseam,
+                  lengthUnit
+                )}
               />
 
               <MeasurementCard
@@ -358,16 +499,16 @@ export default function Home() {
   );
 }
 
-/* ---------------------------------------------------------
+/* =========================================================
    SLIDER
---------------------------------------------------------- */
+========================================================= */
 
 type SliderProps = {
   label: string;
   value: number;
   min: number;
   max: number;
-  unit: string;
+  displayValue: string;
   onChange: (value: number) => void;
 };
 
@@ -376,7 +517,7 @@ function Slider({
   value,
   min,
   max,
-  unit,
+  displayValue,
   onChange,
 }: SliderProps) {
   return (
@@ -387,7 +528,7 @@ function Slider({
         </span>
 
         <span className="text-sm font-medium text-blue-400">
-          {value} {unit}
+          {displayValue}
         </span>
       </div>
 
@@ -405,14 +546,14 @@ function Slider({
   );
 }
 
-/* ---------------------------------------------------------
+/* =========================================================
    BUTTONS
---------------------------------------------------------- */
+========================================================= */
 
 type ButtonProps = {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 function ProfileButton({
@@ -455,9 +596,9 @@ function ViewButton({
   );
 }
 
-/* ---------------------------------------------------------
+/* =========================================================
    MEASUREMENT CARD
---------------------------------------------------------- */
+========================================================= */
 
 function MeasurementCard({
   title,
@@ -479,9 +620,53 @@ function MeasurementCard({
   );
 }
 
-/* ---------------------------------------------------------
+/* =========================================================
+   UNIT CONVERSIONS
+========================================================= */
+
+function formatLength(
+  centimeters: number,
+  unit: LengthUnit
+) {
+  switch (unit) {
+    case "mm":
+      return `${Math.round(centimeters * 10)} mm`;
+
+    case "m":
+      return `${(centimeters / 100).toFixed(2)} m`;
+
+    case "in":
+      return `${(centimeters / 2.54).toFixed(1)} in`;
+
+    case "ft":
+      return `${(centimeters / 30.48).toFixed(2)} ft`;
+
+    case "cm":
+    default:
+      return `${centimeters} cm`;
+  }
+}
+
+function formatWeight(
+  kilograms: number,
+  unit: WeightUnit
+) {
+  switch (unit) {
+    case "g":
+      return `${Math.round(kilograms * 1000)} g`;
+
+    case "lb":
+      return `${(kilograms * 2.2046226218).toFixed(1)} lb`;
+
+    case "kg":
+    default:
+      return `${kilograms} kg`;
+  }
+}
+
+/* =========================================================
    HELPERS
---------------------------------------------------------- */
+========================================================= */
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
