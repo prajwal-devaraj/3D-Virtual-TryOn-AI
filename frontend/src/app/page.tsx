@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+
 import AvatarViewer from "@/components/AvatarViewer";
+import ClothingPanel from "@/components/ClothingPanel";
+
+import type {
+  FabricType,
+  GarmentSize,
+} from "@/data/garments";
 
 type BodyProfile = "male" | "female" | "neutral";
 type CameraView = "front" | "side" | "back";
@@ -10,14 +17,9 @@ type LengthUnit = "cm" | "mm" | "m" | "in" | "ft";
 type WeightUnit = "kg" | "g" | "lb";
 
 export default function Home() {
-  /*
-   * IMPORTANT:
-   * Internally we always store:
-   * - length = centimeters
-   * - weight = kilograms
-   *
-   * Units below only control how values are displayed.
-   */
+  /* =======================================================
+     BODY STATE
+  ======================================================= */
 
   const [height, setHeight] = useState(175);
   const [weight, setWeight] = useState(75);
@@ -30,8 +32,8 @@ export default function Home() {
   const [armLength, setArmLength] = useState(62);
   const [inseam, setInseam] = useState(80);
 
-  const [skinColor, setSkinColor] = useState("#c98f65");
-  const [shirtColor, setShirtColor] = useState("#2563eb");
+  const [skinColor, setSkinColor] =
+    useState("#c98f65");
 
   const [bodyProfile, setBodyProfile] =
     useState<BodyProfile>("neutral");
@@ -39,20 +41,40 @@ export default function Home() {
   const [view, setView] =
     useState<CameraView>("front");
 
+  /* =======================================================
+     UNIT STATE
+  ======================================================= */
+
   const [lengthUnit, setLengthUnit] =
     useState<LengthUnit>("cm");
 
   const [weightUnit, setWeightUnit] =
     useState<WeightUnit>("kg");
 
-  /*
-   * BMI calculations always use kg + meters,
-   * regardless of selected display unit.
-   */
-  const bmi = useMemo(() => {
-    const heightInMeters = height / 100;
+  /* =======================================================
+     CLOTHING STATE
+  ======================================================= */
 
-    return weight / (heightInMeters * heightInMeters);
+  const [selectedGarmentId, setSelectedGarmentId] =
+    useState("classic-tshirt");
+
+  const [selectedSize, setSelectedSize] =
+    useState<GarmentSize>("M");
+
+  const [selectedFabric, setSelectedFabric] =
+    useState<FabricType>("Cotton");
+
+  const [garmentColor, setGarmentColor] =
+    useState("#2563eb");
+
+  /* =======================================================
+     BODY CALCULATIONS
+  ======================================================= */
+
+  const bmi = useMemo(() => {
+    const meters = height / 100;
+
+    return weight / (meters * meters);
   }, [height, weight]);
 
   const build = useMemo(() => {
@@ -73,8 +95,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto max-w-7xl px-5 py-8">
+      <div className="mx-auto max-w-[1600px] px-5 py-8">
         {/* HEADER */}
+
         <header className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-blue-400">
             AI Virtual Fitting Room
@@ -85,47 +108,62 @@ export default function Home() {
           </h1>
 
           <p className="mt-3 max-w-3xl text-slate-400">
-            Build a personalized body profile using your preferred
-            measurement units and preview the result in interactive 3D.
+            Create your body profile, choose clothing and
+            preview how garments fit your body in interactive
+            3D.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[370px_1fr]">
-          {/* LEFT PANEL */}
+        {/* MAIN WORKSPACE */}
+
+        <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)_360px]">
+
+          {/* =================================================
+              LEFT: BODY SETTINGS
+          ================================================= */}
+
           <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">
               Body Profile
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Customize measurements using the units you normally use.
+              Customize your body measurements.
             </p>
 
-            {/* BODY PROFILE */}
+            {/* BODY BASE */}
+
             <div className="mt-5 grid grid-cols-3 gap-2">
               <ProfileButton
                 active={bodyProfile === "male"}
-                onClick={() => setBodyProfile("male")}
+                onClick={() =>
+                  setBodyProfile("male")
+                }
               >
                 Male
               </ProfileButton>
 
               <ProfileButton
                 active={bodyProfile === "female"}
-                onClick={() => setBodyProfile("female")}
+                onClick={() =>
+                  setBodyProfile("female")
+                }
               >
                 Female
               </ProfileButton>
 
               <ProfileButton
                 active={bodyProfile === "neutral"}
-                onClick={() => setBodyProfile("neutral")}
+                onClick={() =>
+                  setBodyProfile("neutral")
+                }
               >
                 Neutral
               </ProfileButton>
             </div>
 
-            {/* UNIT SETTINGS */}
+            {/* UNITS */}
+
             <div className="mt-7 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
               <h3 className="font-semibold">
                 Measurement Units
@@ -144,26 +182,26 @@ export default function Home() {
                         event.target.value as LengthUnit
                       )
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-white outline-none"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none"
                   >
                     <option value="cm">
-                      Centimeters (cm)
+                      Centimeters
                     </option>
 
                     <option value="mm">
-                      Millimeters (mm)
+                      Millimeters
                     </option>
 
                     <option value="m">
-                      Meters (m)
+                      Meters
                     </option>
 
                     <option value="in">
-                      Inches (in)
+                      Inches
                     </option>
 
                     <option value="ft">
-                      Feet (ft)
+                      Feet
                     </option>
                   </select>
                 </div>
@@ -180,18 +218,18 @@ export default function Home() {
                         event.target.value as WeightUnit
                       )
                     }
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-white outline-none"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white outline-none"
                   >
                     <option value="kg">
-                      Kilograms (kg)
+                      Kilograms
                     </option>
 
                     <option value="g">
-                      Grams (g)
+                      Grams
                     </option>
 
                     <option value="lb">
-                      Pounds (lb)
+                      Pounds
                     </option>
                   </select>
                 </div>
@@ -199,6 +237,7 @@ export default function Home() {
             </div>
 
             {/* MEASUREMENTS */}
+
             <div className="mt-7">
               <Slider
                 label="Height"
@@ -297,10 +336,11 @@ export default function Home() {
               />
             </div>
 
-            {/* COLORS */}
+            {/* SKIN */}
+
             <div className="border-t border-slate-800 pt-6">
               <label className="mb-2 block font-medium">
-                Skin tone
+                Skin Tone
               </label>
 
               <input
@@ -312,30 +352,20 @@ export default function Home() {
                 className="h-12 w-full cursor-pointer rounded-lg border border-slate-700 bg-transparent"
               />
             </div>
-
-            <div className="mt-5">
-              <label className="mb-2 block font-medium">
-                Shirt color
-              </label>
-
-              <input
-                type="color"
-                value={shirtColor}
-                onChange={(event) =>
-                  setShirtColor(event.target.value)
-                }
-                className="h-12 w-full cursor-pointer rounded-lg border border-slate-700 bg-transparent"
-              />
-            </div>
           </section>
 
-          {/* RIGHT SIDE */}
+          {/* =================================================
+              CENTER: 3D VIEW
+          ================================================= */}
+
           <section className="min-w-0">
-            {/* BUILD + CAMERA */}
+
+            {/* TOP */}
+
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-slate-400">
-                  Current body build
+                  Current Body Build
                 </p>
 
                 <p className="mt-1 text-lg font-semibold">
@@ -347,31 +377,38 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2">
                 <ViewButton
                   active={view === "front"}
-                  onClick={() => setView("front")}
+                  onClick={() =>
+                    setView("front")
+                  }
                 >
                   Front
                 </ViewButton>
 
                 <ViewButton
                   active={view === "side"}
-                  onClick={() => setView("side")}
+                  onClick={() =>
+                    setView("side")
+                  }
                 >
                   Side
                 </ViewButton>
 
                 <ViewButton
                   active={view === "back"}
-                  onClick={() => setView("back")}
+                  onClick={() =>
+                    setView("back")
+                  }
                 >
                   Back
                 </ViewButton>
               </div>
             </div>
 
-            {/* AVATAR */}
+            {/* 3D AVATAR */}
+
             <AvatarViewer
               height={height}
               weight={weight}
@@ -382,15 +419,25 @@ export default function Home() {
               armLength={armLength}
               inseam={inseam}
               skinColor={skinColor}
-              shirtColor={shirtColor}
+
+              /*
+               * For now garmentColor controls
+               * the visible shirt.
+               *
+               * Next step replaces this with
+               * actual independent 3D garments.
+               */
+              shirtColor={garmentColor}
+
               bodyProfile={bodyProfile}
               view={view}
             />
 
-            {/* CONTROLS HELP */}
+            {/* HELP */}
+
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-300">
               <span className="rounded-full bg-slate-900 px-4 py-2">
-                Drag → Rotate 360°
+                Drag → Rotate
               </span>
 
               <span className="rounded-full bg-slate-900 px-4 py-2">
@@ -398,15 +445,12 @@ export default function Home() {
               </span>
 
               <span className="rounded-full bg-slate-900 px-4 py-2">
-                Units → Auto convert
-              </span>
-
-              <span className="rounded-full bg-slate-900 px-4 py-2">
-                Sliders → Live update
+                Clothing → Live preview
               </span>
             </div>
 
             {/* SUMMARY */}
+
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <MeasurementCard
                 title="Body Base"
@@ -430,12 +474,12 @@ export default function Home() {
               />
 
               <MeasurementCard
-                title="Body Build"
+                title="Build"
                 value={build}
               />
 
               <MeasurementCard
-                title="Chest / Bust"
+                title="Chest"
                 value={formatLength(
                   chest,
                   lengthUnit
@@ -465,34 +509,35 @@ export default function Home() {
                   lengthUnit
                 )}
               />
-
-              <MeasurementCard
-                title="Arm Length"
-                value={formatLength(
-                  armLength,
-                  lengthUnit
-                )}
-              />
-
-              <MeasurementCard
-                title="Inseam"
-                value={formatLength(
-                  inseam,
-                  lengthUnit
-                )}
-              />
-
-              <MeasurementCard
-                title="BMI"
-                value={bmi.toFixed(1)}
-              />
-
-              <MeasurementCard
-                title="Camera"
-                value={capitalize(view)}
-              />
             </div>
           </section>
+
+          {/* =================================================
+              RIGHT: CLOTHING
+          ================================================= */}
+
+          <ClothingPanel
+            selectedGarmentId={selectedGarmentId}
+            selectedSize={selectedSize}
+            selectedFabric={selectedFabric}
+            garmentColor={garmentColor}
+
+            onGarmentChange={
+              setSelectedGarmentId
+            }
+
+            onSizeChange={
+              setSelectedSize
+            }
+
+            onFabricChange={
+              setSelectedFabric
+            }
+
+            onColorChange={
+              setGarmentColor
+            }
+          />
         </div>
       </div>
     </main>
@@ -509,7 +554,10 @@ type SliderProps = {
   min: number;
   max: number;
   displayValue: string;
-  onChange: (value: number) => void;
+
+  onChange: (
+    value: number
+  ) => void;
 };
 
 function Slider({
@@ -538,7 +586,9 @@ function Slider({
         max={max}
         value={value}
         onChange={(event) =>
-          onChange(Number(event.target.value))
+          onChange(
+            Number(event.target.value)
+          )
         }
         className="w-full cursor-pointer accent-blue-500"
       />
@@ -630,18 +680,25 @@ function formatLength(
 ) {
   switch (unit) {
     case "mm":
-      return `${Math.round(centimeters * 10)} mm`;
+      return `${Math.round(
+        centimeters * 10
+      )} mm`;
 
     case "m":
-      return `${(centimeters / 100).toFixed(2)} m`;
+      return `${(
+        centimeters / 100
+      ).toFixed(2)} m`;
 
     case "in":
-      return `${(centimeters / 2.54).toFixed(1)} in`;
+      return `${(
+        centimeters / 2.54
+      ).toFixed(1)} in`;
 
     case "ft":
-      return `${(centimeters / 30.48).toFixed(2)} ft`;
+      return `${(
+        centimeters / 30.48
+      ).toFixed(2)} ft`;
 
-    case "cm":
     default:
       return `${centimeters} cm`;
   }
@@ -653,12 +710,15 @@ function formatWeight(
 ) {
   switch (unit) {
     case "g":
-      return `${Math.round(kilograms * 1000)} g`;
+      return `${Math.round(
+        kilograms * 1000
+      )} g`;
 
     case "lb":
-      return `${(kilograms * 2.2046226218).toFixed(1)} lb`;
+      return `${(
+        kilograms * 2.2046226218
+      ).toFixed(1)} lb`;
 
-    case "kg":
     default:
       return `${kilograms} kg`;
   }
@@ -669,5 +729,8 @@ function formatWeight(
 ========================================================= */
 
 function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  return (
+    value.charAt(0).toUpperCase() +
+    value.slice(1)
+  );
 }
